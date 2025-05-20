@@ -1,5 +1,6 @@
 package com.isl.GenRutas.controller;
 
+import com.isl.GenRutas.dto.LocalDTO;
 import com.isl.GenRutas.service.RutaPropuestaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -21,14 +22,13 @@ public class RutaPropuestaController {
     }
 
     @GetMapping("/sugerir")
-    public List<String> sugerirRuta() {
+    public List<LocalDTO> sugerirRuta() {
         return rutaPropuestaService.sugerirSiguienteRuta();
     }
 
     @PostMapping("/confirmar")
-    public String confirmarRuta(@RequestBody List<String> codigosConfirmados) {
-        rutaPropuestaService.confirmarRuta(codigosConfirmados);
-        return "Ruta confirmada";
+    public void confirmarRuta(@RequestBody List<String> codigos) {
+        rutaPropuestaService.confirmarRuta(codigos);
     }
 
     @GetMapping("/pendientes")
@@ -47,4 +47,10 @@ public class RutaPropuestaController {
         rutaPropuestaService.guardarRutasConfirmadas(codigoCarga, comentario);
         return "Rutas confirmadas guardadas exitosamente.";
     }
+
+    @GetMapping("/sugerencias")
+    public List<List<LocalDTO>> obtenerSugerenciasConDetalles() {
+        return rutaPropuestaService.sugerenciasConDetalles();
+    }
+
 }

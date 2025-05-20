@@ -1,4 +1,4 @@
-package com.isl.GenRutas.loader;
+/*package com.isl.GenRutas.loader;
 
 import com.isl.GenRutas.service.RutaHistoricaService;
 import lombok.RequiredArgsConstructor;
@@ -49,4 +49,4 @@ public class ExcelRutaHistoricaLoader implements CommandLineRunner {
 
         System.out.println("✅ Rutas históricas cargadas exitosamente.");
     }
-}
+}*/

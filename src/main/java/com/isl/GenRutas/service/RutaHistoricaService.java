@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -42,40 +43,44 @@ public class RutaHistoricaService {
             RutaHistoricaDTO dto = new RutaHistoricaDTO();
             dto.setNombre(ruta.getNombre());
             dto.setCodigosLocales(
-                ruta.getLocales().stream()
-                    .sorted(Comparator.comparingInt(RutaHistoricaLocal::getOrden))
-                    .map(RutaHistoricaLocal::getCodigoLocal)
-                    .toList()
-            );
+                    ruta.getLocales().stream()
+                            .sorted(Comparator.comparingInt(RutaHistoricaLocal::getOrden))
+                            .map(RutaHistoricaLocal::getCodigoLocal)
+                            .toList());
             return dto;
         }).toList();
     }
 
     public List<String> sugerirRutaDesdeHistorial(List<String> codigosPendientes) {
+        List<List<String>> sugerencias = sugerirMultiplesRutasDesdeHistorial(codigosPendientes);
+        return sugerencias.isEmpty() ? Collections.emptyList() : sugerencias.get(0);
+    }
+
+    public List<List<String>> sugerirMultiplesRutasDesdeHistorial(List<String> codigosPendientes) {
         List<RutaHistorica> historicas = rutaHistoricaRepository.findAll();
 
-        List<String> mejorRuta = new ArrayList<>();
-        int maxCoincidencias = 0;
+        List<List<String>> rutasCoincidentes = historicas.stream()
+                .map(ruta -> {
+                    List<String> codigosRuta = ruta.getLocales().stream()
+                            .sorted(Comparator.comparingInt(RutaHistoricaLocal::getOrden))
+                            .map(RutaHistoricaLocal::getCodigoLocal)
+                            .toList();
 
-        for (RutaHistorica ruta : historicas) {
-            // Extrae los códigos en orden
-            List<String> codigosRuta = ruta.getLocales().stream()
-                    .sorted(Comparator.comparingInt(RutaHistoricaLocal::getOrden))
-                    .map(RutaHistoricaLocal::getCodigoLocal)
-                    .toList();
+                    // Intersección entre ruta histórica y códigos pendientes
+                    List<String> interseccion = codigosRuta.stream()
+                            .filter(codigosPendientes::contains)
+                            .toList();
 
-            // Filtra los códigos que están en los pendientes actuales
-            List<String> interseccion = codigosRuta.stream()
-                    .filter(codigosPendientes::contains)
-                    .toList();
+                    return interseccion;
+                })
+                .filter(ruta -> !ruta.isEmpty()) // Solo rutas que tengan al menos una coincidencia
+                .sorted((a, b) -> Integer.compare(b.size(), a.size())) // Mayor coincidencia primero
+                .toList();
 
-            if (interseccion.size() > maxCoincidencias) {
-                mejorRuta = interseccion;
-                maxCoincidencias = interseccion.size();
-            }
-        }
+        System.out.println("Rutas sugeridas ordenadas:");
+        rutasCoincidentes.forEach(System.out::println);
 
-        return mejorRuta;
+        return rutasCoincidentes;
     }
 
 }
